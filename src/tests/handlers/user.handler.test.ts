@@ -34,89 +34,66 @@ describe("Handler tests", () => {
 		});
 
 		it("should get users", () => {
-			let res: User[];
-			getList({query: {}} as Request, {json: (val) => (res = val)} as Response, null as NextFunction);
+			const [res, total] = getList(null);
 
-			expect(res.some((x) => x.name === "test2")).true;
+			expect(res.some((x) => x.name === 'test2')).true;
 		});
 
 		it("should search users", () => {
-			let res: User[];
-			getList(
-				{query: {search: "test1"} as any} as Request,
-				{json: (val) => (res = val)} as Response,
-				null as NextFunction
-			);
-
+			const [res, total] = getList("test1");
 			expect(res.some((x) => x.name === "test1")).true;
 		});
 
 		it("should get user by id", () => {
-			let res: User;
-			get({params: {id: "1"} as any} as Request, {json: (val) => (res = val)} as Response, null as NextFunction);
+			const res = get("1");
 
 			expect(res.name).equal("test2");
 			expect(res.email).equal("test-user+2@panenco.com");
 		});
 
 		it("should fail when getting user by unknown id", () => {
-			let res: any;
-			get(
-				{params: {id: "999"} as any} as Request,
-				{status: (s) => ({json: (val) => (res = val)})} as Response,
-				null as NextFunction
-			);
-
-			expect(res.error).equal("User not found");
+			try {
+				get('999');
+			} catch (error) {
+				expect(error.message).equal('User not found');
+				return;
+			}
+			expect(true, 'should have thrown an error').false;
 		});
 
 		it("should create user", async () => {
-			let res: User;
 			const body = {
 				email: "test-user+new@panenco.com",
 				name: "newUser",
 				password: "reallysecretstuff",
 			} as User;
-			await create({body} as Request, {json: (val) => (res = val)} as Response, null as NextFunction);
+			const res = await create(body);
 
 			expect(res.name).equal("newUser");
 			expect(res.email).equal("test-user+new@panenco.com");
-			expect(res.password).undefined;
 		});
 
 		it("should update user", async () => {
-			const res = {locals: {}} as Response;
 			const body = {
 				email: "test-user+updated@panenco.com",
 			} as User;
 			const id = 0;
-			update({
-				body,
-				params: {id} as any
-			} as Request, res, () => null as NextFunction);
 
-			expect(res.locals.body.email).equal(body.email);
-			expect(res.locals.body.name).equal("test1");
+			const res = update(id.toString(), body);
+		
+			expect(res.email).equal(body.email);
+			expect(res.name).equal("test1");
 			expect(UserStore.users.find((x) => x.id === id).email).equal(body.email);
 		});
 
 		it("should delete user by id", () => {
 			const initialCount = UserStore.users.length;
 			let status: number;
-			deleteUser(
-				{params: {id: "1"} as any} as Request,
-				{
-					status: (s) => {
-						status = s;
-						return {end: () => null};
-					},
-				} as Response,
-				null as NextFunction
-			);
+
+			deleteUser('1');
 
 			expect(UserStore.users.some((x) => x.id === 1)).false;
 			expect(initialCount - 1).equal(UserStore.users.length);
-			expect(status).equal(204);
 		});
 	});
 });

@@ -1,8 +1,10 @@
+import 'express-async-errors';
 import "reflect-metadata";
 import express, { Application, NextFunction, Request, Response } from 'express';
 
 import { UserController } from './controllers/users/user.controller.js';
 import { useExpressServer } from "routing-controllers";
+import { errorMiddleware } from "@panenco/papi";
 
 export class App {
   host: Application;
@@ -32,11 +34,7 @@ export class App {
       res.status(404).send("No Endpoint found");
     });
 
-    this.host.use(
-      (error: any, req: Request, res: Response, next: NextFunction) => {
-        res.status(400).json(error);
-      }
-    );
+    this.host.use(errorMiddleware);
   }
 
   private initializeControllers(controllers: Function[]) {
