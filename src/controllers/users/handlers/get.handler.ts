@@ -1,12 +1,11 @@
-import { NextFunction, Request, Response } from 'express';
-
 import { UserStore } from './user.store.js';
+import { NotFound } from '@panenco/papi';
 
-export const get = (req: Request, res: Response, next: NextFunction) => {
-  const id = Number(req.params.id);
+export const get = (idString: string) => {
+  const id = Number(idString);
   const user = UserStore.get(id);
   if (!user) {
-    return res.status(404).json({ error: "User not found" });
+    throw new NotFound('userNotFound', 'User not found');
   }
-  res.json(user);
+  return user
 };

@@ -1,16 +1,14 @@
-import { plainToInstance } from 'class-transformer';
-import { validate } from 'class-validator';
-import { NextFunction, Request, Response, Router } from 'express';
+import { NextFunction, Request, Response } from 'express';
 
 import { UserBody } from '../../contracts/user.body.js';
-import { UserView } from '../../contracts/user.view.js';
 import { create } from './handlers/create.handler.js';
 import { deleteUser } from './handlers/delete.handler.js';
 import { get } from './handlers/get.handler.js';
 import { getList } from './handlers/getList.handler.js';
 import { update } from './handlers/update.handler.js';
-import { Delete, Get, JsonController, Patch, Post } from 'routing-controllers';
-import { Body } from '@panenco/papi';
+import { Delete, Get, JsonController, Param, Patch, Post, UseBefore } from 'routing-controllers';
+import { Body, Query } from '@panenco/papi';
+import { SearchQuery } from '../../contracts/search.query.js';
 
 const adminMiddleware = (req: Request, res: Response, next: NextFunction) => {
   if (req.header("auth") !== "api-key") {
@@ -19,53 +17,32 @@ const adminMiddleware = (req: Request, res: Response, next: NextFunction) => {
   next();
 };
 
-const representationMiddleware = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const transformed = plainToInstance(UserView, res.locals.body);
-  res.json(transformed);
-};
-
-
 @JsonController('/users')
 export class UserController {
-  // constructor() {
-  //   this.router = Router();
-  //   this.path = "users";
+	@Post()
+	@UseBefore(adminMiddleware)
+	async create(@Body() body: UserBody) {
+		return create(body);
+	}
 
-  //   this.router.post("/", adminMiddleware, create);
-  //   this.router.patch(
-  //     "/:id",
-  //     patchValidationMiddleware,
-  //     update,
-  //     representationMiddleware
-  //   );
-  // }
+	@Get()
+	async getList(@Query() query: SearchQuery) {
+		return getList(query.search);
+	}
 
-  @Post()
-  async create(@Body() body: UserBody) {
-    return create();
-  }
+	@Get('/:id')
+	async get(@Param('id') id: string) {
+		return get(id);
+	}
 
-  @Get()
-  async getList() {
-    return getList();
-  }
+	@Patch('/:id')
+	async update(@Param('id') id: string, @Body({}, {skipMissingProperties: true}) body: UserBody) {
+		return update(id, body);
+	}
 
-  @Get('/:id')
-  async get() {
-    return get();
-  }
-
-  @Patch('/:id')
-  async update(@Body({}, {skipMissingProperties: true}) body: UserBody) {
-    return update();
-  }
-
-  @Delete('/:id')
-  async delete() {
-    return deleteUser();
-  }
+	@Delete('/:id')
+	async delete(@Param('id') id: string) {
+		deleteUser(id);
+		return null;
+	}
 }
