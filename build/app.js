@@ -77,7 +77,7 @@ export class App {
                 }
             ]
         });
-        this.host.use("/docs", swaggerUi.serve, swaggerUi.setup(spec));
+        this.host.use('/docs', swaggerUi.serve, swaggerUi.setup(spec));
     }
     listen() {
         this.host.listen(3000, ()=>{

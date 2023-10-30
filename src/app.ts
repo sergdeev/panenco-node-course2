@@ -10,10 +10,14 @@ import { validationMetadatasToSchemas } from 'class-validator-jsonschema';
 import { getMetadataStorage } from 'class-validator';
 import { routingControllersToSpec } from 'routing-controllers-openapi';
 import swaggerUi from 'swagger-ui-express';
+import { MikroORM } from '@mikro-orm/core';
+import ormConfig from './orm.config.js';
+import { PostgreSqlDriver } from '@mikro-orm/postgresql';
 
 
 export class App {
   host: Application;
+  public orm: MikroORM<PostgreSqlDriver>;
 
   constructor() {
     // Init server
@@ -43,6 +47,14 @@ export class App {
     this.host.use(errorMiddleware);
   }
 
+  public async createConnection() {
+		try {
+			this.orm = await MikroORM.init(ormConfig);
+		} catch (error) {
+			console.log('Error while connecting to the database', error);
+		}
+	}
+
   private initializeControllers(controllers: Function[]) {
     useExpressServer(this.host, { // Link the express host to routing-controllers
       cors: {
@@ -56,35 +68,36 @@ export class App {
     });
  }
 
- private initializeSwagger() {
-  const schemas = validationMetadatasToSchemas({
-    classValidatorMetadataStorage: getMetadataStorage(),
-    refPointerPrefix: "#/components/schemas/",
-  });
+  private initializeSwagger() {
+    const schemas = validationMetadatasToSchemas({
+      classValidatorMetadataStorage: getMetadataStorage(),
+      refPointerPrefix: "#/components/schemas/",
+    });
 
-  const routingControllersOptions: RoutingControllersOptions = {
-    routePrefix: "/api",
-  };
+    const routingControllersOptions: RoutingControllersOptions = {
+      routePrefix: "/api",
+    };
 
-  const storage = getMetadataArgsStorage();
-  const spec = routingControllersToSpec(storage, routingControllersOptions, {
-    components: {
-      schemas,
-      securitySchemes: {
-        JWT: {
-          in: "header",
-          name: "x-auth",
-          type: "apiKey",
-          bearerFormat: "JWT",
-          description: "JWT Authorization header using the JWT scheme. Example: \"x-auth: {token}\"",
+    const storage = getMetadataArgsStorage();
+
+    const spec = routingControllersToSpec(storage, routingControllersOptions, {
+      components: {
+        schemas,
+        securitySchemes: {
+          JWT: {
+            in: "header",
+            name: "x-auth",
+            type: "apiKey",
+            bearerFormat: "JWT",
+            description: "JWT Authorization header using the JWT scheme. Example: \"x-auth: {token}\"",
+          },
         },
       },
-    },
-    security: [{JWT: []}],
-  });
+      security: [{JWT: []}],
+    });
 
-  this.host.use("/docs", swaggerUi.serve, swaggerUi.setup(spec));
-}
+    this.host.use('/docs', swaggerUi.serve, swaggerUi.setup(spec));
+  } 
 
   listen() {
     this.host.listen(3000, () => {
