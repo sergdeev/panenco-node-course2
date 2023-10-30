@@ -4,8 +4,12 @@ import express, { Application, NextFunction, Request, Response } from 'express';
 
 import { UserController } from './controllers/users/user.controller.js';
 import AuthController from './controllers/auth/auth.controller.js';
-import { useExpressServer } from "routing-controllers";
+import { RoutingControllersOptions, getMetadataArgsStorage, useExpressServer } from "routing-controllers";
 import { errorMiddleware, getAuthenticator } from "@panenco/papi";
+import { validationMetadatasToSchemas } from 'class-validator-jsonschema';
+import { getMetadataStorage } from 'class-validator';
+import { routingControllersToSpec } from 'routing-controllers-openapi';
+import swaggerUi from 'swagger-ui-express';
 
 
 export class App {
@@ -51,6 +55,36 @@ export class App {
       authorizationChecker: getAuthenticator('jwtSecretFromConfigHere'), // Tell routing-controllers to use the papi authentication checker
     });
  }
+
+ private initializeSwagger() {
+  const schemas = validationMetadatasToSchemas({
+    classValidatorMetadataStorage: getMetadataStorage(),
+    refPointerPrefix: "#/components/schemas/",
+  });
+
+  const routingControllersOptions: RoutingControllersOptions = {
+    routePrefix: "/api",
+  };
+
+  const storage = getMetadataArgsStorage();
+  const spec = routingControllersToSpec(storage, routingControllersOptions, {
+    components: {
+      schemas,
+      securitySchemes: {
+        JWT: {
+          in: "header",
+          name: "x-auth",
+          type: "apiKey",
+          bearerFormat: "JWT",
+          description: "JWT Authorization header using the JWT scheme. Example: \"x-auth: {token}\"",
+        },
+      },
+    },
+    security: [{JWT: []}],
+  });
+
+  this.host.use("/docs", swaggerUi.serve, swaggerUi.setup(spec));
+}
 
   listen() {
     this.host.listen(3000, () => {
