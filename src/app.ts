@@ -3,8 +3,10 @@ import "reflect-metadata";
 import express, { Application, NextFunction, Request, Response } from 'express';
 
 import { UserController } from './controllers/users/user.controller.js';
+import AuthController from './controllers/auth/auth.controller.js';
 import { useExpressServer } from "routing-controllers";
-import { errorMiddleware } from "@panenco/papi";
+import { errorMiddleware, getAuthenticator } from "@panenco/papi";
+
 
 export class App {
   host: Application;
@@ -27,7 +29,7 @@ export class App {
       next();
     });
 
-    this.initializeControllers([UserController]);
+    this.initializeControllers([UserController, AuthController]);
 
     // Custom after middleware (only used when res.send or json is not called in a previous middleware (no endpoint found))
     this.host.use((req: Request, res: Response, next: NextFunction) => {
@@ -39,13 +41,14 @@ export class App {
 
   private initializeControllers(controllers: Function[]) {
     useExpressServer(this.host, { // Link the express host to routing-controllers
-    cors: {
-       origin: "*", // Allow all origins, any application on any url can call our api. This is why we also added the `cors` package.
-       exposedHeaders: ["x-auth"], // Allow the header `x-auth` to be exposed to the client. This is needed for the authentication to work later.
-    },
-    controllers, // Provide the controllers. Currently this won't work yet, first we need to convert the Route to a routing-controllers controller.
-    defaultErrorHandler: false, // Disable the default error handler. We will handle errors through papi later.
-    routePrefix: "/api", // Map all routes to the `/api` path.
+      cors: {
+        origin: "*", // Allow all origins, any application on any url can call our api. This is why we also added the `cors` package.
+        exposedHeaders: ["x-auth"], // Allow the header `x-auth` to be exposed to the client. This is needed for the authentication to work later.
+      },
+      controllers, // Provide the controllers. Currently this won't work yet, first we need to convert the Route to a routing-controllers controller.
+      defaultErrorHandler: false, // Disable the default error handler. We will handle errors through papi later.
+      routePrefix: "/api", // Map all routes to the `/api` path.
+      authorizationChecker: getAuthenticator('jwtSecretFromConfigHere'), // Tell routing-controllers to use the papi authentication checker
     });
  }
 
