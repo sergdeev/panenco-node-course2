@@ -28,28 +28,29 @@ export class UserController {
 	}
 
 	@Get()
-	@Authorized()
+	// @Authorized()
 	@ListRepresenter(UserView)
 	async getList(@Query() query: SearchQuery) {
 		return getList(query.search);
 	}
-	
+
 	@Get('/:id')
-	@Authorized()
+	// @Authorized()
 	@Representer(UserView)
 	async get(@Param('id') id: string) {
-		return get(id);
+	  return get(id);
 	}
+  
 
 	@Patch('/:id')
-	@Authorized()
+	// @Authorized()
 	@Representer(UserView)
 	async update(@Param('id') id: string, @Body({}, {skipMissingProperties: true}) body: UserBody) {
 		return update(id, body);
 	}
 
 	@Delete('/:id')
-	@Authorized()
+	// @Authorized()
 	@Representer(null)
 	async delete(@Param('id') id: string) {
 		deleteUser(id);
