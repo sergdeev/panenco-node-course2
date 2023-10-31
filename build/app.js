@@ -9,8 +9,11 @@ import { validationMetadatasToSchemas } from 'class-validator-jsonschema';
 import { getMetadataStorage } from 'class-validator';
 import { routingControllersToSpec } from 'routing-controllers-openapi';
 import swaggerUi from 'swagger-ui-express';
+import { MikroORM } from '@mikro-orm/core';
+import ormConfig from './orm.config.js';
 export class App {
     host;
+    orm;
     constructor(){
         // Init server
         this.host = express();
@@ -34,6 +37,13 @@ export class App {
             res.status(404).send("No Endpoint found");
         });
         this.host.use(errorMiddleware);
+    }
+    async createConnection() {
+        try {
+            this.orm = await MikroORM.init(ormConfig);
+        } catch (error) {
+            console.log('Error while connecting to the database', error);
+        }
     }
     initializeControllers(controllers) {
         useExpressServer(this.host, {

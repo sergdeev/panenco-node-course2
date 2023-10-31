@@ -1,13 +1,15 @@
-import { UserStore } from './user.store.js';
 import { NotFound } from '@panenco/papi';
 import { UserBody } from '../../../contracts/user.body.js';
+import { RequestContext } from '@mikro-orm/core';
+import { User } from '../../../entities/user.entity.js';
 
-export const update = (idString: string, body: UserBody) => {
-  const id = Number(idString);
-  const user = UserStore.get(id);
+export const update = async (id: string, body: UserBody) => {
+  const em = RequestContext.getEntityManager();
+  const user = em.findOne(User, {id});
   if (!user) {
     throw new NotFound('userNotFound', 'User not found');
   }
-  const updated = UserStore.update(id, {...user, ...body});
-  return updated
+  user.assign(body);
+	await em.flush();
+  return user
 };

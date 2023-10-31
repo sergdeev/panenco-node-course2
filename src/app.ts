@@ -1,5 +1,5 @@
 import 'express-async-errors';
-import "reflect-metadata";
+// import "reflect-metadata";
 import express, { Application, NextFunction, Request, Response } from 'express';
 
 import { UserController } from './controllers/users/user.controller.js';
@@ -10,7 +10,7 @@ import { validationMetadatasToSchemas } from 'class-validator-jsonschema';
 import { getMetadataStorage } from 'class-validator';
 import { routingControllersToSpec } from 'routing-controllers-openapi';
 import swaggerUi from 'swagger-ui-express';
-import { MikroORM } from '@mikro-orm/core';
+import { MikroORM, RequestContext } from '@mikro-orm/core';
 import ormConfig from './orm.config.js';
 import { PostgreSqlDriver } from '@mikro-orm/postgresql';
 
@@ -45,6 +45,9 @@ export class App {
     });
 
     this.host.use(errorMiddleware);
+    this.host.use((req, __, next: NextFunction) => {
+      RequestContext.create(this.orm.em, next);
+    });
   }
 
   public async createConnection() {

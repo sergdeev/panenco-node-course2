@@ -1,5 +1,8 @@
-import { App } from "./app.js";
-const app = new App();
-app.listen();
+import { App } from './app.js';
+(async ()=>{
+    const app = new App();
+    await app.createConnection();
+    app.listen();
+})();
 
 //# sourceMappingURL=server.js.map
