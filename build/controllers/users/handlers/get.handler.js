@@ -1,8 +1,11 @@
-import { UserStore } from './user.store.js';
+import { RequestContext } from '@mikro-orm/core';
 import { NotFound } from '@panenco/papi';
-export const get = (idString)=>{
-    const id = Number(idString);
-    const user = UserStore.get(id);
+import { User } from '../../../../build/entities/user.entity.js';
+export const get = (id)=>{
+    const em = RequestContext.getEntityManager();
+    const user = em.findOne(User, {
+        id
+    });
     if (!user) {
         throw new NotFound('userNotFound', 'User not found');
     }

@@ -1,17 +1,14 @@
-'use strict';
-Object.defineProperty(exports, '__esModule', { value: true });
-const { Migration } = require('@mikro-orm/migrations');
+import { Migration } from '@mikro-orm/migrations';
 
-class Migration20231031112917 extends Migration {
+export class Migration20231031144308 extends Migration {
 
-  async up() {
+  async up(): Promise<void> {
     this.addSql('create table "user" ("id" uuid not null, "name" varchar(255) not null, "email" varchar(255) not null, "password" varchar(255) not null, constraint "user_pkey" primary key ("id"));');
     this.addSql('alter table "user" add constraint "user_email_unique" unique ("email");');
   }
 
-  async down() {
+  async down(): Promise<void> {
     this.addSql('drop table if exists "user" cascade;');
   }
 
 }
-exports.Migration20231031112917 = Migration20231031112917;

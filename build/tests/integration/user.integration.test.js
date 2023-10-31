@@ -2,15 +2,21 @@ import { expect } from "chai";
 import { beforeEach, describe, it } from "mocha";
 import supertest from "supertest";
 import { App } from "../../app.js";
-import { UserStore } from "../../controllers/users/handlers/user.store.js";
 import { StatusCode } from "@panenco/papi";
+import { User } from "../../entities/user.entity.js";
 describe("Integration tests", ()=>{
     describe("User Tests", ()=>{
         let request;
-        beforeEach(()=>{
-            UserStore.users = [];
+        let orm;
+        before(async ()=>{
             const app = new App();
+            await app.createConnection();
+            orm = app.orm;
             request = supertest(app.host);
+        });
+        beforeEach(async ()=>{
+            await orm.em.execute(`DROP SCHEMA public CASCADE; CREATE SCHEMA public;`);
+            await orm.getMigrator().up();
         });
         it("should CRUD users", async ()=>{
             // Unauthorized without "api-key"
@@ -24,7 +30,10 @@ describe("Integration tests", ()=>{
                 name: "test",
                 ...creds
             }).expect(StatusCode.created);
-            expect(UserStore.users.some((x)=>x.email === createResponse.email)).true;
+            const foundCreatedUser = await orm.em.fork().findOne(User, {
+                id: createResponse.id
+            });
+            expect(foundCreatedUser.name).equal('test');
             // Get the token
             const { body: loginResponse } = await request.post(`/api/auth/tokens`).send(creds).expect(StatusCode.ok);
             const token = loginResponse.token;

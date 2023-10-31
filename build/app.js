@@ -1,5 +1,5 @@
 import 'express-async-errors';
-import "reflect-metadata";
+// import "reflect-metadata";
 import express from 'express';
 import { UserController } from './controllers/users/user.controller.js';
 import AuthController from './controllers/auth/auth.controller.js';
@@ -9,7 +9,7 @@ import { validationMetadatasToSchemas } from 'class-validator-jsonschema';
 import { getMetadataStorage } from 'class-validator';
 import { routingControllersToSpec } from 'routing-controllers-openapi';
 import swaggerUi from 'swagger-ui-express';
-import { MikroORM } from '@mikro-orm/core';
+import { MikroORM, RequestContext } from '@mikro-orm/core';
 import ormConfig from './orm.config.js';
 export class App {
     host;
@@ -37,6 +37,9 @@ export class App {
             res.status(404).send("No Endpoint found");
         });
         this.host.use(errorMiddleware);
+        this.host.use((req, __, next)=>{
+            RequestContext.create(this.orm.em, next);
+        });
     }
     async createConnection() {
         try {

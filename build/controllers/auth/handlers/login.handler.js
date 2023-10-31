@@ -1,7 +1,11 @@
 import { Unauthorized, createAccessToken } from '@panenco/papi';
-import { UserStore } from '../../users/handlers/user.store.js';
+import { RequestContext } from '@mikro-orm/core';
+import { User } from '../../../entities/user.entity.js';
 export const login = async (body)=>{
-    const user = UserStore.getByEmail(body.email);
+    const em = RequestContext.getEntityManager();
+    const user = em.findOne(User, {
+        email: body.email
+    });
     if (!user || user.password !== body.password) {
         throw new Unauthorized('unauthorized', 'Invalid credentials');
     }
