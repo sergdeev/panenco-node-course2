@@ -1,5 +1,5 @@
-import { Exclude, Expose } from 'class-transformer';
-import { IsEmail, IsString, Length } from 'class-validator';
+import { Exclude, Expose } from "class-transformer";
+import { IsEmail, IsString, Length } from "class-validator";
 
 @Exclude()
 export class LoginBody {

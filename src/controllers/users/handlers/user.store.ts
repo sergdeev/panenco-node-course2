@@ -18,11 +18,13 @@ export class UserStore {
 
   static find(search?: string): User[] {
     return this.users.filter(
-      (user) => !search || Object.values(user).some((value) => value?.toString().includes(search))
+      (user) =>
+        !search ||
+        Object.values(user).some((value) => value?.toString().includes(search)),
     );
   }
 
-  static add(user: Omit<User, 'id'>): User {
+  static add(user: Omit<User, "id">): User {
     const u = { ...user, id: this.users.length };
     this.users.push(u);
     return u;
@@ -34,7 +36,7 @@ export class UserStore {
     this.users.splice(
       this.users.findIndex((x) => x === current),
       1,
-      user
+      user,
     );
     return user;
   }
@@ -42,7 +44,7 @@ export class UserStore {
   static delete(id: number) {
     this.users.splice(
       this.users.findIndex((x) => x.id === id),
-      1
+      1,
     );
   }
 }

@@ -1,19 +1,22 @@
-import 'express-async-errors';
+import "express-async-errors";
 // import "reflect-metadata";
-import express, { Application, NextFunction, Request, Response } from 'express';
+import express, { Application, NextFunction, Request, Response } from "express";
 
-import { UserController } from './controllers/users/user.controller.js';
-import AuthController from './controllers/auth/auth.controller.js';
-import { RoutingControllersOptions, getMetadataArgsStorage, useExpressServer } from "routing-controllers";
+import { UserController } from "./controllers/users/user.controller.js";
+import AuthController from "./controllers/auth/auth.controller.js";
+import {
+  RoutingControllersOptions,
+  getMetadataArgsStorage,
+  useExpressServer,
+} from "routing-controllers";
 import { errorMiddleware, getAuthenticator } from "@panenco/papi";
-import { validationMetadatasToSchemas } from 'class-validator-jsonschema';
-import { getMetadataStorage } from 'class-validator';
-import { routingControllersToSpec } from 'routing-controllers-openapi';
-import swaggerUi from 'swagger-ui-express';
-import { MikroORM, RequestContext } from '@mikro-orm/core';
-import ormConfig from './orm.config.js';
-import { PostgreSqlDriver } from '@mikro-orm/postgresql';
-
+import { validationMetadatasToSchemas } from "class-validator-jsonschema";
+import { getMetadataStorage } from "class-validator";
+import { routingControllersToSpec } from "routing-controllers-openapi";
+import swaggerUi from "swagger-ui-express";
+import { MikroORM, RequestContext } from "@mikro-orm/core";
+import ormConfig from "./orm.config.js";
+import { PostgreSqlDriver } from "@mikro-orm/postgresql";
 
 export class App {
   host: Application;
@@ -51,15 +54,16 @@ export class App {
   }
 
   public async createConnection() {
-		try {
-			this.orm = await MikroORM.init(ormConfig);
-		} catch (error) {
-			console.log('Error while connecting to the database', error);
-		}
-	}
+    try {
+      this.orm = await MikroORM.init(ormConfig);
+    } catch (error) {
+      console.log("Error while connecting to the database", error);
+    }
+  }
 
   private initializeControllers(controllers: Function[]) {
-    useExpressServer(this.host, { // Link the express host to routing-controllers
+    useExpressServer(this.host, {
+      // Link the express host to routing-controllers
       cors: {
         origin: "*", // Allow all origins, any application on any url can call our api. This is why we also added the `cors` package.
         exposedHeaders: ["x-auth"], // Allow the header `x-auth` to be exposed to the client. This is needed for the authentication to work later.
@@ -67,9 +71,9 @@ export class App {
       controllers, // Provide the controllers. Currently this won't work yet, first we need to convert the Route to a routing-controllers controller.
       defaultErrorHandler: false, // Disable the default error handler. We will handle errors through papi later.
       routePrefix: "/api", // Map all routes to the `/api` path.
-      authorizationChecker: getAuthenticator('jwtSecretFromConfigHere'), // Tell routing-controllers to use the papi authentication checker
+      authorizationChecker: getAuthenticator("jwtSecretFromConfigHere"), // Tell routing-controllers to use the papi authentication checker
     });
- }
+  }
 
   private initializeSwagger() {
     const schemas = validationMetadatasToSchemas({
@@ -92,15 +96,16 @@ export class App {
             name: "x-auth",
             type: "apiKey",
             bearerFormat: "JWT",
-            description: "JWT Authorization header using the JWT scheme. Example: \"x-auth: {token}\"",
+            description:
+              'JWT Authorization header using the JWT scheme. Example: "x-auth: {token}"',
           },
         },
       },
-      security: [{JWT: []}],
+      security: [{ JWT: [] }],
     });
 
-    this.host.use('/docs', swaggerUi.serve, swaggerUi.setup(spec));
-  } 
+    this.host.use("/docs", swaggerUi.serve, swaggerUi.setup(spec));
+  }
 
   listen() {
     this.host.listen(3000, () => {

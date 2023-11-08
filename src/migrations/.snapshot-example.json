@@ -1,7 +1,5 @@
 {
-  "namespaces": [
-    "public"
-  ],
+  "namespaces": ["public"],
   "name": "public",
   "tables": [
     {
@@ -47,9 +45,7 @@
       "schema": "public",
       "indexes": [
         {
-          "columnNames": [
-            "email"
-          ],
+          "columnNames": ["email"],
           "composite": false,
           "keyName": "user_email_unique",
           "primary": false,
@@ -57,9 +53,7 @@
         },
         {
           "keyName": "user_pkey",
-          "columnNames": [
-            "id"
-          ],
+          "columnNames": ["id"],
           "composite": false,
           "primary": true,
           "unique": true

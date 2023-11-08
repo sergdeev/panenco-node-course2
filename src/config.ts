@@ -1,7 +1,7 @@
-import loader from '@ljobse/appsettings-loader';
+import loader from "@ljobse/appsettings-loader";
 import * as fs from "node:fs";
 
-const json = await fs.promises.readFile('./config.json', 'utf8');
+const json = await fs.promises.readFile("./config.json", "utf8");
 
 const config = loader.applyEnvConfig(JSON.parse(json));
 
